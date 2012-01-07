@@ -42,7 +42,14 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="false"/>
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false"/>
- 
+
+    <!-- Only this app can receive the messages and registration result -->
+    <permission android:name="@ANDROID_PACKAGE_NAME@.permission.C2D_MESSAGE"
+                android:protectionLevel="signature" />
+    <uses-permission android:name="@ANDROID_PACKAGE_NAME@.permission.C2D_MESSAGE" />
+    <!-- The app has permission to register and receive messages -->
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+
     <application android:label="@MOZ_APP_DISPLAYNAME@"
 		 android:icon="@drawable/icon"
 #if MOZILLA_OFFICIAL
@@ -50,6 +57,23 @@
 #else
 		 android:debuggable="true">
 #endif
+
+        <!-- Only C2DM servers can send messages to the app.
+             If permission is not set, any other app can generate it. -->
+        <receiver android:name="org.mozilla.gecko.C2DMReceiver"
+                  android:permission="com.google.android.c2dm.permission.SEND">
+            <!-- Receive the message. -->
+            <intent-filter>
+                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+                <category android:name="@ANDROID_PACKAGE_NAME@" />
+            </intent-filter>
+
+            <!-- Receive the message id. -->
+            <intent-filter>
+                <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
+                <category android:name="@ANDROID_PACKAGE_NAME@" />
+            </intent-filter>
+        </receiver>
 
         <activity android:name="App"
                   android:label="@MOZ_APP_DISPLAYNAME@"
@@ -168,4 +192,4 @@
     <permission android:name="@ANDROID_PACKAGE_NAME@.permissions.BROWSER_PROVIDER"
                 android:protectionLevel="signature"/>
 
-</manifest> 
+</manifest>

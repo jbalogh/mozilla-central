@@ -154,7 +154,7 @@ abstract public class GeckoApp
     public interface OnTabsChangedListener {
         public void onTabsChanged(Tab tab);
     }
-    
+
     private static ArrayList<OnTabsChangedListener> mTabsChangedListeners;
 
     static class ExtraMenuItem implements MenuItem.OnMenuItemClickListener {
@@ -438,10 +438,10 @@ abstract public class GeckoApp
             saveAsPDF.setEnabled(false);
             return true;
         }
-        
+
         bookmark.setEnabled(true);
         bookmark.setCheckable(true);
-        
+
         if (tab.isBookmark()) {
             bookmark.setChecked(true);
             bookmark.setIcon(R.drawable.ic_menu_bookmark_remove);
@@ -591,7 +591,7 @@ abstract public class GeckoApp
         boolean isSelectedTab = Tabs.getInstance().isSelectedTab(tab);
         final Bitmap bitmap = isSelectedTab ?
             mSoftwareLayerClient.getBitmap() : null;
-        
+
         if (bitmap != null) {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             bitmap.compress(Bitmap.CompressFormat.PNG, 0, bos);
@@ -630,7 +630,7 @@ abstract public class GeckoApp
             }
         }
     }
-    
+
     void processThumbnail(Tab thumbnailTab, Bitmap bitmap, byte[] compressed) {
         if (Tabs.getInstance().isSelectedTab(thumbnailTab))
             mLastScreen = compressed;
@@ -703,10 +703,10 @@ abstract public class GeckoApp
         if (Tabs.getInstance().isSelectedTab(tab)) {
             if (uri.equals("about:home"))
                 showAboutHome();
-            else 
+            else
                 hideAboutHome();
         }
-        
+
         String oldBaseURI = tab.getURL();
         tab.updateURL(uri);
         tab.setDocumentURI(documentURI);
@@ -718,7 +718,7 @@ abstract public class GeckoApp
 
         if (oldBaseURI != null && oldBaseURI.indexOf('#') != -1)
             oldBaseURI = oldBaseURI.substring(0, oldBaseURI.indexOf('#'));
-        
+
         if (baseURI.equals(oldBaseURI)) {
             mMainHandler.post(new Runnable() {
                 public void run() {
@@ -761,8 +761,8 @@ abstract public class GeckoApp
             return;
 
         tab.updateSecurityMode(mode);
-        
-        mMainHandler.post(new Runnable() { 
+
+        mMainHandler.post(new Runnable() {
             public void run() {
                 if (Tabs.getInstance().isSelectedTab(tab))
                     mBrowserToolbar.setSecurityMode(mode);
@@ -774,7 +774,7 @@ abstract public class GeckoApp
         final Tab tab = Tabs.getInstance().getTab(tabId);
         if (tab == null)
             return;
-    
+
         // When a load error occurs, the URLBar can get corrupt so we reset it
         mMainHandler.post(new Runnable() {
             public void run() {
@@ -862,14 +862,14 @@ abstract public class GeckoApp
     public static void registerOnTabsChangedListener(OnTabsChangedListener listener) {
         if (mTabsChangedListeners == null)
             mTabsChangedListeners = new ArrayList<OnTabsChangedListener>();
-        
+
         mTabsChangedListeners.add(listener);
     }
 
     public static void unregisterOnTabsChangedListener(OnTabsChangedListener listener) {
         if (mTabsChangedListeners == null)
             return;
-        
+
         mTabsChangedListeners.remove(listener);
     }
 
@@ -1124,8 +1124,8 @@ abstract public class GeckoApp
                         loadUrl(url, AwesomeBar.Type.EDIT);
                     }
                 });
-                RelativeLayout.LayoutParams lp = 
-                    new RelativeLayout.LayoutParams(LayoutParams.FILL_PARENT, 
+                RelativeLayout.LayoutParams lp =
+                    new RelativeLayout.LayoutParams(LayoutParams.FILL_PARENT,
                                                     LayoutParams.FILL_PARENT);
                 mGeckoLayout.addView(mAboutHomeContent, lp);
             } else if (mAboutHomeContent != null && mShow) {
@@ -1148,7 +1148,7 @@ abstract public class GeckoApp
 
         View customTitleView = getLayoutInflater().inflate(R.layout.site_setting_title, null);
         ((TextView) customTitleView.findViewById(R.id.title)).setText(R.string.site_settings_title);
-        ((TextView) customTitleView.findViewById(R.id.host)).setText(aHost);        
+        ((TextView) customTitleView.findViewById(R.id.host)).setText(aHost);
         builder.setCustomTitle(customTitleView);
 
         // If there are no permissions to clear, show the user a message about that.
@@ -1195,7 +1195,7 @@ abstract public class GeckoApp
         builder.setNegativeButton(R.string.site_settings_cancel, new DialogInterface.OnClickListener(){
             public void onClick(DialogInterface dialog, int id) {
                 dialog.cancel();
-            }            
+            }
         });
 
         mMainHandler.post(new Runnable() {
@@ -1371,7 +1371,7 @@ abstract public class GeckoApp
                        final int x, final int y,
                        final int w, final int h,
                        final String metadata) {
-        mMainHandler.post(new Runnable() { 
+        mMainHandler.post(new Runnable() {
             public void run() {
                 PluginLayoutParams lp;
                 JSONObject viewportObject;
@@ -1384,7 +1384,7 @@ abstract public class GeckoApp
                     return;
 
                 ViewportMetrics targetViewport = mLayerController.getViewportMetrics();
-                
+
                 try {
                     viewportObject = new JSONObject(metadata);
                     pluginViewport = new ViewportMetrics(viewportObject);
@@ -1425,7 +1425,7 @@ abstract public class GeckoApp
     }
 
     void removePluginView(final View view) {
-        mMainHandler.post(new Runnable() { 
+        mMainHandler.post(new Runnable() {
             public void run() {
                 try {
                     mPluginContainer.removeView(view);
@@ -1494,7 +1494,7 @@ abstract public class GeckoApp
     }
 
     public void setFullScreen(final boolean fullscreen) {
-        mMainHandler.post(new Runnable() { 
+        mMainHandler.post(new Runnable() {
             public void run() {
                 // Hide/show the system notification bar
                 getWindow().setFlags(fullscreen ?
@@ -1518,6 +1518,15 @@ abstract public class GeckoApp
         }
     }
 
+    void registerC2DM() {
+        Log.e("jbalogh", "starting c2dm");
+        Intent regIntent = new Intent("com.google.android.c2dm.intent.REGISTER");
+        regIntent.putExtra("app", PendingIntent.getBroadcast(this, 0, new Intent(), 0));
+        regIntent.putExtra("sender", "fennec.ubuntu@gmail.com");
+        startService(regIntent);
+        Log.e("jbalogh", "sent REGISTER intent");
+    }
+
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -1528,6 +1537,8 @@ abstract public class GeckoApp
         if (getResources().getBoolean(R.bool.enableStrictMode)) {
             enableStrictMode();
         }
+
+        registerC2DM();
 
         System.loadLibrary("mozglue");
         mMainHandler = new Handler();
@@ -1625,10 +1636,10 @@ abstract public class GeckoApp
             mBrowserToolbar.setTitle(tab.getDisplayTitle());
             mBrowserToolbar.setFavicon(tab.getFavicon());
             mBrowserToolbar.setProgressVisibility(tab.isLoading());
-            mBrowserToolbar.updateTabs(Tabs.getInstance().getCount()); 
+            mBrowserToolbar.updateTabs(Tabs.getInstance().getCount());
         }
 
-        tabs.setContentResolver(getContentResolver()); 
+        tabs.setContentResolver(getContentResolver());
 
         if (cameraView == null) {
             cameraView = new SurfaceView(this);
@@ -1800,7 +1811,7 @@ abstract public class GeckoApp
                     Uri data;
                     if (location != null &&
                         (data = Uri.parse(location)) != null &&
-                        !"about".equals(data.getScheme()) && 
+                        !"about".equals(data.getScheme()) &&
                         !"chrome".equals(data.getScheme())) {
                         mIntent.setData(data);
                         mLastTitle = location;
@@ -1828,7 +1839,7 @@ abstract public class GeckoApp
         }
     }
 
-    private final String kPrefetchWhiteListArray[] = new String[] { 
+    private final String kPrefetchWhiteListArray[] = new String[] {
         "t.co",
         "bit.ly",
         "moz.la",
@@ -1837,7 +1848,7 @@ abstract public class GeckoApp
         "goo.gl",
         "tinyurl.com"
     };
-    
+
     private final CopyOnWriteArrayList<String> kPrefetchWhiteList =
         new CopyOnWriteArrayList<String>(kPrefetchWhiteListArray);
 
@@ -1863,7 +1874,7 @@ abstract public class GeckoApp
             // is either http, we'll prefetch it, which means warming
             // up the radio and DNS cache by connecting and parsing the redirect
             // if the return code is between 300 and 400
-            if (data != null && 
+            if (data != null &&
                 "http".equals(data.getScheme()) &&
                 (bundle == null || bundle.getInt("prefetched", 0) != 1) &&
                 isHostOnPrefetchWhitelist(data.getHost())) {
@@ -2028,7 +2039,7 @@ abstract public class GeckoApp
         // in onXreExit.
         if (isFinishing())
             GeckoAppShell.sendEventToGecko(new GeckoEvent(GeckoEvent.ACTIVITY_SHUTDOWN));
-        
+
         GeckoAppShell.unregisterGeckoEventListener("DOMContentLoaded", GeckoApp.mAppContext);
         GeckoAppShell.unregisterGeckoEventListener("DOMTitleChanged", GeckoApp.mAppContext);
         GeckoAppShell.unregisterGeckoEventListener("DOMLinkAdded", GeckoApp.mAppContext);
@@ -2259,7 +2270,7 @@ abstract public class GeckoApp
     public boolean onSearchRequested() {
         return showAwesomebar(AwesomeBar.Type.ADD);
     }
- 
+
     public boolean onEditRequested() {
         return showAwesomebar(AwesomeBar.Type.EDIT);
     }
@@ -2364,10 +2375,10 @@ abstract public class GeckoApp
                     ContentResolver cr = getContentResolver();
                     Uri uri = data.getData();
                     Cursor cursor = GeckoApp.mAppContext.getContentResolver().query(
-                        uri, 
+                        uri,
                         new String[] { OpenableColumns.DISPLAY_NAME },
-                        null, 
-                        null, 
+                        null,
+                        null,
                         null);
                     String name = null;
                     if (cursor != null) {

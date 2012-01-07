@@ -67,6 +67,7 @@ FENNEC_JAVA_FILES = \
   AwesomeBar.java \
   AwesomeBarTabs.java \
   BrowserToolbar.java \
+  C2DMReceiver.java \
   ConfirmPreference.java \
   SyncPreference.java \
   db/AndroidBrowserDB.java \
