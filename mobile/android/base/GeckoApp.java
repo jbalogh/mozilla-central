@@ -1519,12 +1519,8 @@ abstract public class GeckoApp
     }
 
     void registerC2DM() {
-        Log.e("jbalogh", "starting c2dm");
-        Intent regIntent = new Intent("com.google.android.c2dm.intent.REGISTER");
-        regIntent.putExtra("app", PendingIntent.getBroadcast(this, 0, new Intent(), 0));
-        regIntent.putExtra("sender", "fennec.ubuntu@gmail.com");
-        startService(regIntent);
-        Log.e("jbalogh", "sent REGISTER intent");
+        Log.e("jbalogh", "here we go");
+        C2DMService.register(this);
     }
 
     /** Called when the activity is first created. */

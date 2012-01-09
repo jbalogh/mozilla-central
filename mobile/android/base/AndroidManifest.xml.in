@@ -58,6 +58,7 @@
 		 android:debuggable="true">
 #endif
 
+        <service android:name="org.mozilla.gecko.C2DMService" />
         <!-- Only C2DM servers can send messages to the app.
              If permission is not set, any other app can generate it. -->
         <receiver android:name="org.mozilla.gecko.C2DMReceiver"
