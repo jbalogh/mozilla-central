@@ -1,6 +1,16 @@
 package org.mozilla.gecko;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Iterator;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 
 import android.app.Activity;
 import android.app.IntentService;
@@ -23,6 +33,7 @@ public class C2DMService extends IntentService {
     private static final String SENDER = "fennec.ubuntu@gmail.com";
     private static final String CHECK_REGISTRATION = "org.mozilla.gecko.c2dm.CHECK";
     private static final String PREF = "c2dm.registration_id";
+    private static final String PUSH_SERVER = "http://push.jbalogh.me";
 
     public C2DMService() {
         super("C2DMService");
@@ -61,6 +72,7 @@ public class C2DMService extends IntentService {
             Log.e(LOGTAG, "sent REGISTER intent");
         } else {
             Log.e("jbalogh", "existing id: " + registrationId);
+            registerWithServer(registrationId);
         }
     }
 
@@ -80,5 +92,22 @@ public class C2DMService extends IntentService {
     private void setRegistrationId(String registrationId) {
         SharedPreferences settings = GeckoApp.mAppContext.getPreferences(Activity.MODE_PRIVATE);
         settings.edit().putString(PREF, registrationId).apply();
+        registerWithServer(registrationId);
+    }
+
+    private static void registerWithServer(String registrationId) {
+        Log.e("jbalogh", "registering with server");
+        HttpClient client = new DefaultHttpClient();
+        HttpPost post = new HttpPost(PUSH_SERVER);
+        try {
+            List<NameValuePair> body = new ArrayList<NameValuePair>(1);
+            body.add(new BasicNameValuePair("registration_id", registrationId));
+            post.setEntity(new UrlEncodedFormEntity(body));
+            Log.e("jbalogh", "posting");
+            HttpResponse response = client.execute(post);
+            Log.e("jbalogh", response.toString());
+        } catch(Exception ex) {
+            Log.e("jbalogh", "http error", ex);
+        }
     }
 }
