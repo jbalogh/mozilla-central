@@ -1534,8 +1534,6 @@ abstract public class GeckoApp
             enableStrictMode();
         }
 
-        registerC2DM();
-
         System.loadLibrary("mozglue");
         mMainHandler = new Handler();
         Log.w(LOGTAG, "zerdatime " + SystemClock.uptimeMillis() + " - onCreate");
@@ -1580,6 +1578,8 @@ abstract public class GeckoApp
             if (!sessionExists)
                 showAboutHome();
         }
+
+        registerC2DM();
 
         if (sGREDir == null)
             sGREDir = new File(this.getApplicationInfo().dataDir);

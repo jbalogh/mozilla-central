@@ -2,10 +2,13 @@ package org.mozilla.gecko;
 
 import java.util.Iterator;
 
+import android.app.Activity;
 import android.app.IntentService;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Bundle;
 import android.util.Log;
 
 
@@ -18,6 +21,8 @@ public class C2DMService extends IntentService {
 
     // TODO: make this configurable.
     private static final String SENDER = "fennec.ubuntu@gmail.com";
+    private static final String CHECK_REGISTRATION = "org.mozilla.gecko.c2dm.CHECK";
+    private static final String PREF = "c2dm.registration_id";
 
     public C2DMService() {
         super("C2DMService");
@@ -32,20 +37,31 @@ public class C2DMService extends IntentService {
         Log.e("jbalogh", "action: " + intent.getAction());
         showExtras(intent);
 
-        if (intent.getAction().equals("com.google.android.c2dm.intent.REGISTRATION")) {
+        if (intent.getAction().equals(REGISTER_CALLBACK)) {
             Log.e("jbalogh", "(registration)");
-        } else if (intent.getAction().equals("com.google.android.c2dm.intent.RECEIVE")) {
+            onRegistration(intent);
+        } else if (intent.getAction().equals(MESSAGE)) {
             Log.e("jbalogh", "(message)");
         }
     }
 
+    private void onRegistration(Intent intent) {
+        setRegistrationId(intent.getStringExtra("registration_id"));
+    }
+
     public static void register(Context context) {
         Log.e(LOGTAG, "registering for c2dm");
-        Intent regIntent = new Intent(REGISTER);
-        regIntent.putExtra("app", PendingIntent.getBroadcast(context, 0, new Intent(), 0));
-        regIntent.putExtra("sender", SENDER);
-        context.startService(regIntent);
-        Log.e(LOGTAG, "sent REGISTER intent");
+        String registrationId = getRegistrationId();
+
+        if (registrationId.equals("")) {
+            Intent regIntent = new Intent(REGISTER);
+            regIntent.putExtra("app", PendingIntent.getBroadcast(context, 0, new Intent(), 0));
+            regIntent.putExtra("sender", SENDER);
+            context.startService(regIntent);
+            Log.e(LOGTAG, "sent REGISTER intent");
+        } else {
+            Log.e("jbalogh", "existing id: " + registrationId);
+        }
     }
 
     void showExtras(Intent intent) {
@@ -54,5 +70,15 @@ public class C2DMService extends IntentService {
             String key = iterator.next();
             Log.e("jbalogh", "  " + key + ": " + intent.getStringExtra(key));
         }
+    }
+
+    private static String getRegistrationId() {
+        SharedPreferences settings = GeckoApp.mAppContext.getPreferences(Activity.MODE_PRIVATE);
+        return settings.getString(PREF, "");
+    }
+
+    private void setRegistrationId(String registrationId) {
+        SharedPreferences settings = GeckoApp.mAppContext.getPreferences(Activity.MODE_PRIVATE);
+        settings.edit().putString(PREF, registrationId).apply();
     }
 }
