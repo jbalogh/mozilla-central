@@ -48,6 +48,8 @@ LIBXUL_LIBRARY	= 1
 FORCE_STATIC_LIB = 1
 
 EXTRA_PP_COMPONENTS = \
+		Push.js \
+		Push.manifest \
 		ConsoleAPI.js \
 		ConsoleAPI.manifest \
 		$(NULL)

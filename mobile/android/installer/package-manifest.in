@@ -1,4 +1,4 @@
-; Package file for the Fennec build. 
+; Package file for the Fennec build.
 ;
 ; File format:
 ;
@@ -285,6 +285,8 @@
 @BINPATH@/components/openwebapps.xpt
 
 ; JavaScript components
+@BINPATH@/components/Push.manifest
+@BINPATH@/components/Push.js
 @BINPATH@/components/ConsoleAPI.manifest
 @BINPATH@/components/ConsoleAPI.js
 @BINPATH@/components/FeedProcessor.manifest
@@ -475,7 +477,7 @@
 @BINPATH@/defaults/profile/prefs.js
 
 ; [Layout Engine Resources]
-; Style Sheets, Graphics and other Resources used by the layout engine. 
+; Style Sheets, Graphics and other Resources used by the layout engine.
 @BINPATH@/res/EditorOverride.css
 @BINPATH@/res/contenteditable.css
 @BINPATH@/res/designmode.css
