@@ -259,6 +259,7 @@ var BrowserApp = {
     IndexedDB.init();
     XPInstallObserver.init();
     ConsoleAPI.init();
+    Push.init();
     ClipboardHelper.init();
     PermissionsHelper.init();
     CharacterEncoding.init();
@@ -370,6 +371,7 @@ var BrowserApp = {
     XPInstallObserver.uninit();
     ConsoleAPI.uninit();
     CharacterEncoding.uninit();
+    Push.uninit();
   },
 
   get tabs() {
@@ -834,7 +836,7 @@ var BrowserApp = {
       // height/width away from the bottom/right), the scrollIntoView call will make gecko scroll to the
       // bottom/right of the page in an attempt to align the input field with the top of the viewport.
       // however, since gecko doesn't know about the zoom, what it thinks is the "bottom/right of
-      // the page" isn't actually the bottom/right of the page at the current zoom level, and we 
+      // the page" isn't actually the bottom/right of the page at the current zoom level, and we
       // need to adjust this further.
       // 3. we can't actually adjust this by changing the window scroll position, as gecko already thinks
       // we're at the bottom/right, so instead we do it by changing the viewportExcess on the tab and
@@ -1581,7 +1583,7 @@ Tab.prototype = {
         return;
 
       let canvas = document.createElementNS("http://www.w3.org/1999/xhtml", "canvas");
-      canvas.setAttribute("width", aDst.width);  
+      canvas.setAttribute("width", aDst.width);
       canvas.setAttribute("height", aDst.height);
       canvas.setAttribute("moz-opaque", "true");
 
@@ -2206,11 +2208,11 @@ var BrowserEventHandler = {
         try {
           let data = JSON.parse(aData);
           [data.x, data.y] = ElementTouchHelper.toScreenCoords(element.ownerDocument.defaultView, data.x, data.y);
-  
+
           this._sendMouseEvent("mousemove", element, data.x, data.y);
           this._sendMouseEvent("mousedown", element, data.x, data.y);
           this._sendMouseEvent("mouseup",   element, data.x, data.y);
-  
+
           if (ElementTouchHelper.isElementClickable(element))
             Haptic.performSimpleAction(Haptic.LongPress);
         } catch(e) {
@@ -2238,13 +2240,13 @@ var BrowserEventHandler = {
       });
     }
   },
- 
+
   _zoomOut: function() {
     this._zoomedToElement = null;
     // zoom out, try to keep the center in the center of the page
     setTimeout(function() {
       sendMessageToJava({ gecko: { type: "Browser:ZoomToPageWidth"} });
-    }, 0);    
+    }, 0);
   },
 
   onDoubleTap: function(aData) {
@@ -2252,7 +2254,7 @@ var BrowserEventHandler = {
 
     let rect = {};
     let win = BrowserApp.selectedBrowser.contentWindow;
-    
+
     let zoom = BrowserApp.selectedTab._viewport.zoom;
     let element = ElementTouchHelper.anyElementFromPoint(win, data.x, data.y);
     if (!element) {
@@ -2451,7 +2453,7 @@ const ElementTouchHelper = {
   toBrowserCoords: function(aWindow, aX, aY) {
     if (!aWindow)
       throw "Must provide a window";
-  
+
     let browser = BrowserApp.getBrowserForWindow(aWindow.top);
     if (!browser)
       throw "Unable to find a browser";
@@ -2470,7 +2472,7 @@ const ElementTouchHelper = {
   toScreenCoords: function(aWindow, aX, aY) {
     if (!aWindow)
       throw "Must provide a window";
-  
+
     let browser = BrowserApp.getBrowserForWindow(aWindow.top);
     if (!browser)
       throw "Unable to find a browser";
@@ -2657,17 +2659,17 @@ const ElementTouchHelper = {
   getBoundingContentRect: function(aElement) {
     if (!aElement)
       return {x: 0, y: 0, w: 0, h: 0};
-  
+
     let document = aElement.ownerDocument;
     while (document.defaultView.frameElement)
       document = document.defaultView.frameElement.ownerDocument;
-  
+
     let cwu = document.defaultView.QueryInterface(Ci.nsIInterfaceRequestor).getInterface(Ci.nsIDOMWindowUtils);
     let scrollX = {}, scrollY = {};
     cwu.getScrollXY(false, scrollX, scrollY);
-  
+
     let r = aElement.getBoundingClientRect();
- 
+
     // step out of iframes and frames, offsetting scroll values
     for (let frame = aElement.ownerDocument.defaultView; frame.frameElement && frame != content; frame = frame.parent) {
       // adjust client coordinates' origin to be top left of iframe viewport
@@ -2784,7 +2786,7 @@ var FormAssistant = {
           gecko: {
             type:  "FormAssist:AutoComplete",
             suggestions: suggestions,
-            rect: [rect.left, rect.top, rect.width, rect.height], 
+            rect: [rect.left, rect.top, rect.width, rect.height],
             zoom: zoom
           }
         });
@@ -3505,6 +3507,40 @@ var IndexedDB = {
   }
 };
 
+var Push = {
+  init: function() {
+    Services.obs.addObserver(this, "request-push", false);
+  },
+
+  uninit: function() {
+    Services.obs.removeObserver(this, "request-push", false);
+  },
+
+  observe: function(message, topic, data) {
+    message = message.wrappedJSObject;
+    Services.console.logStringMessage(message.loc);
+    Services.console.logStringMessage(message.ts);
+    Services.console.logStringMessage(message.w);
+
+    let buttons = [
+      {
+        label: "Allow push?",
+        callback: function () {
+          Services.console.logStringMessage("yay push");
+        }
+      },
+      {
+        label: "Deny push?",
+        callback: function () {
+          Services.console.logStringMessage("no push");
+        }
+      }
+    ];
+    let message = "Let's do push, yeah?"
+    NativeWindow.doorhanger.show(message, "push-optin", buttons);
+  },
+};
+
 var ConsoleAPI = {
   init: function init() {
     Services.obs.addObserver(this, "console-api-log-event", false);
@@ -3655,7 +3691,7 @@ var ClipboardHelper = {
       return;
     let target = aElement.QueryInterface(Ci.nsIDOMNSEditableElement);
     target.editor.paste(Ci.nsIClipboard.kGlobalClipboard);
-    target.focus();  
+    target.focus();
   },
 
   inputMethod: function(aElement) {
@@ -3860,7 +3896,7 @@ var PermissionsHelper = {
         }
 
         // Keep track of permissions, so we know which ones to clear
-        this._currentPermissions = permissions; 
+        this._currentPermissions = permissions;
 
         let host;
         try {
@@ -3876,7 +3912,7 @@ var PermissionsHelper = {
           }
         });
         break;
- 
+
       case "Permissions:Clear":
         // An array of the indices of the permissions we want to clear
         let permissionsToClear = JSON.parse(aData);

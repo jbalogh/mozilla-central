@@ -15,17 +15,24 @@ Push.prototype = {
   // nsIDOMGlobalPropertyInitializer
   init: function (aWindow) {
     this._window = aWindow;
+
+    let self = this;
+
     let chromeObject = {
-      log: function CA_log() {
-        dump("jbalogh:log");
-      },
+
       requestPermission: function(cb) {
-        cb('callback');
-        dump('jbalogh: request perm');
+        let pushEvent = {
+            host: self._window.host,
+            ts: Date.now(),
+        };
+        pushEvent.wrappedJSObject = pushEvent;
+        Services.obs.notifyObservers(pushEvent, "request-push", 5);
+
+        cb("callback");
       },
+
       __exposedProps__: {
-        log: "r",
-        requestPermission: 'r'
+        requestPermission: "r"
       }
     };
 
@@ -37,10 +44,7 @@ Push.prototype = {
                value: chromeObject[fun].bind(chromeObject) };
     }
     const properties = {
-      log: genPropDesc('log'),
-      requestPermission: genPropDesc('requestPermission'),
-      __noSuchMethod__: { enumerable: true, configurable: true, writable: true,
-                          value: function() {} },
+      requestPermission: genPropDesc("requestPermission"),
       __mozillaConsole__: { value: true }
     };
 
