@@ -3518,15 +3518,17 @@ var Push = {
 
   observe: function(message, topic, data) {
     message = message.wrappedJSObject;
-    Services.console.logStringMessage(message.loc);
+    Services.console.logStringMessage(topic);
+    Services.console.logStringMessage(message.host);
     Services.console.logStringMessage(message.ts);
-    Services.console.logStringMessage(message.w);
 
     let buttons = [
       {
         label: "Allow push?",
         callback: function () {
           Services.console.logStringMessage("yay push");
+          let regID = Services.prefs.getComplexValue("c2dm.registration_id", Ci.nsISupportsString).data;
+          Services.console.logStringMessage(regID);
         }
       },
       {

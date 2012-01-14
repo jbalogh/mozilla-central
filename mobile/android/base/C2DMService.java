@@ -92,6 +92,7 @@ public class C2DMService extends IntentService {
     private void setRegistrationId(String registrationId) {
         SharedPreferences settings = GeckoApp.mAppContext.getPreferences(Activity.MODE_PRIVATE);
         settings.edit().putString(PREF, registrationId).apply();
+        GeckoPreferences.setPreference(PREF, registrationId);
         registerWithServer(registrationId);
     }
 

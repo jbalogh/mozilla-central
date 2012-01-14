@@ -5,6 +5,13 @@ let Cc = Components.classes;
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/Services.jsm");
 
+let db = {};
+let root = "http://push.jbalogh.me";
+
+function log(s) {
+  Services.console.logStringMessage(s);
+}
+
 function Push() {}
 Push.prototype = {
 
@@ -18,6 +25,13 @@ Push.prototype = {
 
     let self = this;
 
+    self.getToken(function(t) {
+      log("we have a token: " + t);
+      self.getQueue(t, "push.jbalogh.me", function(q) {
+        log("token and queue: " + t + " : " + q);
+      });
+    });
+
     let chromeObject = {
 
       requestPermission: function(cb) {
@@ -28,7 +42,7 @@ Push.prototype = {
         pushEvent.wrappedJSObject = pushEvent;
         Services.obs.notifyObservers(pushEvent, "request-push", 5);
 
-        cb("callback");
+        cb("woo yeah");
       },
 
       __exposedProps__: {
@@ -52,6 +66,56 @@ Push.prototype = {
     Cu.makeObjectPropsNormal(contentObj);
 
     return contentObj;
+  },
+
+  getToken: function(cb) {
+    log("getting token");
+    if (db.token) {
+      log("have a token: " + db.token);
+      return cb(db.token);
+    }
+    log("xhr token");
+
+    let xhr = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance(Ci.nsIXMLHttpRequest);
+    xhr.open("POST", root + "/token/", true);
+    xhr.addEventListener("load",  (function() {
+      if (xhr.status == 200) {
+        db.token = JSON.parse(xhr.responseText).token;
+        log("got token: " + db.token);
+        return cb(db.token);
+      } else {
+        log("xhr token failed: " + xhr.status);
+      }
+    }).bind(this), false);
+
+    xhr.addEventListener("error", function() { log("xhr error"); });
+    xhr.send(null);
+  },
+
+  getQueue: function(token, host, cb) {
+    log("getting a queue for: " + host);
+    if (db.host) {
+      log("existing queue: " + host + " => " + db.host);
+      return cb(host);
+    }
+
+    log("xhr queue");
+    let xhr = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance(Ci.nsIXMLHttpRequest);
+    xhr.open("POST", root + "/queue/", true);
+    xhr.addEventListener("load", function() {
+      if (xhr.status == 200) {
+        let response = JSON.parse(xhr.responseText);
+        db.host = response.queue;
+        log("new queue: " + host + " => " + db.host);
+        return cb(queue);
+      } else {
+        log("xhr queue failed: " + xhr.status);
+      }
+    });
+    xhr.addEventListener("error", function() { log("xhr error"); });
+
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.send("domain=" + host + "&token=" + token);
   },
 };
 
