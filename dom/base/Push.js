@@ -25,18 +25,11 @@ Push.prototype = {
 
     let self = this;
 
-    self.getToken(function(t) {
-      log("we have a token: " + t);
-      self.getQueue(t, "push.jbalogh.me", function(q) {
-        log("token and queue: " + t + " : " + q);
-      });
-    });
-
     let chromeObject = {
 
       requestPermission: function(cb) {
         let pushEvent = {
-            host: self._window.host,
+            host: self._window.location.host,
             ts: Date.now(),
         };
         pushEvent.wrappedJSObject = pushEvent;
@@ -44,7 +37,7 @@ Push.prototype = {
 
         self.getToken(function(t) {
           log("token: " + t);
-          self.getQueue(t, self._window.host, function(q) {
+          self.getQueue(t, self._window.location.host, function(q) {
             log("token: " + t + " ;queue: " + q);
             cb(q);
           });
@@ -82,12 +75,15 @@ Push.prototype = {
     }
     log("xhr token");
 
+    var self = this;
+
     let xhr = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance(Ci.nsIXMLHttpRequest);
     xhr.open("POST", root + "/token/", true);
     xhr.addEventListener("load",  (function() {
       if (xhr.status == 200) {
         db.token = JSON.parse(xhr.responseText).token;
-        log("got token: " + db.token);
+        log("got new token: " + db.token);
+        self.sendAndroidToken(db.token);
         return cb(db.token);
       } else {
         log("xhr token failed: " + xhr.status);
@@ -98,10 +94,28 @@ Push.prototype = {
     xhr.send(null);
   },
 
+  sendAndroidToken: function(token) {
+    let xhr = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance(Ci.nsIXMLHttpRequest);
+    log("syncing droid id and token");
+    xhr.open("POST", root + "/android/", true);
+    xhr.addEventListener("load", function() {
+      if (xhr.status == 200) {
+        log("droid synced.");
+      } else {
+        log("droid sync failed: " + xhr.status);
+      }
+    });
+    xhr.addEventListener("error", function() { log("xhr error"); });
+
+    let regID = Services.prefs.getComplexValue("c2dm.registration_id", Ci.nsISupportsString).data;
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.send("registration_id=" + regID + "&token=" + token);
+  },
+
   getQueue: function(token, host, cb) {
     log("getting a queue for: " + host);
-    if (db.host) {
-      log("existing queue: " + host + " => " + db.host);
+    if (db[host]) {
+      log("existing queue: " + host + " => " + db[host]);
       return cb(host);
     }
 
@@ -111,9 +125,9 @@ Push.prototype = {
     xhr.addEventListener("load", function() {
       if (xhr.status == 200) {
         let response = JSON.parse(xhr.responseText);
-        db.host = response.queue;
-        log("new queue: " + host + " => " + db.host);
-        return cb(db.host);
+        db[host] = response.queue;
+        log("new queue: " + db[host] + " => " + host);
+        return cb(db[host]);
       } else {
         log("xhr queue failed: " + xhr.status);
       }
