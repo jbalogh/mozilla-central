@@ -53,11 +53,26 @@ public class C2DMService extends IntentService {
             onRegistration(intent);
         } else if (intent.getAction().equals(MESSAGE)) {
             Log.e("jbalogh", "(message)");
+            onMessage(intent);
         }
     }
 
     private void onRegistration(Intent intent) {
         setRegistrationId(intent.getStringExtra("registration_id"));
+    }
+
+    private void onMessage(Intent intent) {
+        String imageUrl = intent.getStringExtra("image"),
+               title = intent.getStringExtra("title"),
+               body = intent.getStringExtra("body");
+        if (imageUrl == null)
+            imageUrl = "";
+        if (title == null)
+            title = "[no title]";
+        if (body == null)
+            body = "[no body]";
+        GeckoAppShell.showAlertNotification(imageUrl, title, body,
+                                            "cookie", "alert name");
     }
 
     public static void register(Context context) {
@@ -93,22 +108,5 @@ public class C2DMService extends IntentService {
         SharedPreferences settings = GeckoApp.mAppContext.getPreferences(Activity.MODE_PRIVATE);
         settings.edit().putString(PREF, registrationId).apply();
         GeckoPreferences.setPreference(PREF, registrationId);
-        registerWithServer(registrationId);
-    }
-
-    private static void registerWithServer(String registrationId) {
-        Log.e("jbalogh", "registering with server");
-        HttpClient client = new DefaultHttpClient();
-        HttpPost post = new HttpPost(PUSH_SERVER);
-        try {
-            List<NameValuePair> body = new ArrayList<NameValuePair>(1);
-            body.add(new BasicNameValuePair("registration_id", registrationId));
-            post.setEntity(new UrlEncodedFormEntity(body));
-            Log.e("jbalogh", "posting");
-            HttpResponse response = client.execute(post);
-            Log.e("jbalogh", response.toString());
-        } catch(Exception ex) {
-            Log.e("jbalogh", "http error", ex);
-        }
     }
 }
