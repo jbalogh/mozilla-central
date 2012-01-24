@@ -88,7 +88,15 @@ public class NotificationHandler
             notificationManager.cancel(notificationID);
         }
 
-        if (App.ACTION_ALERT_CLICK.equals(action)) {
+        if (alertName.equals("PUSH")) {
+            Log.e("jbalogh", "loading " + alertCookie);
+            Intent loadIntent = new Intent(App.ACTION_LOAD);
+            loadIntent.setClassName(context, "@ANDROID_PACKAGE_NAME@.App");
+            loadIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            loadIntent.setData(Uri.parse(alertCookie));
+            context.startActivity(loadIntent);
+            Log.e("jbalogh", "starting " + alertCookie);
+        } else if (App.ACTION_ALERT_CLICK.equals(action)) {
             // Start or bring to front the main activity
             Intent appIntent = new Intent(Intent.ACTION_MAIN);
             appIntent.setClassName(context, "@ANDROID_PACKAGE_NAME@.App");

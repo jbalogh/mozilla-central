@@ -64,15 +64,18 @@ public class C2DMService extends IntentService {
     private void onMessage(Intent intent) {
         String imageUrl = intent.getStringExtra("image"),
                title = intent.getStringExtra("title"),
-               body = intent.getStringExtra("body");
+               body = intent.getStringExtra("body"),
+               url = intent.getStringExtra("url");
         if (imageUrl == null)
             imageUrl = "";
         if (title == null)
             title = "[no title]";
         if (body == null)
             body = "[no body]";
+        if (url == null)
+            url = "http://mozilla.org";
         GeckoAppShell.showAlertNotification(imageUrl, title, body,
-                                            "cookie", "alert name");
+                                            url, "PUSH");
     }
 
     public static void register(Context context) {
