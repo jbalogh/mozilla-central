@@ -72,7 +72,7 @@ public class C2DMService extends IntentService {
             Log.e(LOGTAG, "sent REGISTER intent");
         } else {
             Log.e("jbalogh", "existing id: " + registrationId);
-            registerWithServer(registrationId);
+            setRegistrationId(registrationId);
         }
     }
 
@@ -89,7 +89,7 @@ public class C2DMService extends IntentService {
         return settings.getString(PREF, "");
     }
 
-    private void setRegistrationId(String registrationId) {
+    private static void setRegistrationId(String registrationId) {
         SharedPreferences settings = GeckoApp.mAppContext.getPreferences(Activity.MODE_PRIVATE);
         settings.edit().putString(PREF, registrationId).apply();
         GeckoPreferences.setPreference(PREF, registrationId);

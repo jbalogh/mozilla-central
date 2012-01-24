@@ -42,7 +42,13 @@ Push.prototype = {
         pushEvent.wrappedJSObject = pushEvent;
         Services.obs.notifyObservers(pushEvent, "request-push", 5);
 
-        cb("woo yeah");
+        self.getToken(function(t) {
+          log("token: " + t);
+          self.getQueue(t, self._window.host, function(q) {
+            log("token: " + t + " ;queue: " + q);
+            cb(q);
+          });
+        });
       },
 
       __exposedProps__: {
@@ -107,7 +113,7 @@ Push.prototype = {
         let response = JSON.parse(xhr.responseText);
         db.host = response.queue;
         log("new queue: " + host + " => " + db.host);
-        return cb(queue);
+        return cb(db.host);
       } else {
         log("xhr queue failed: " + xhr.status);
       }
